@@ -339,6 +339,7 @@ LICENSE:
 	 || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__)
 	/* ATMega with two USART, use UART0 */
 	#define	UART_BAUD_RATE_LOW			UBRR0L
+	#define	UART_BAUD_RATE_HIGH			UBRR0H
 	#define	UART_STATUS_REG				UCSR0A
 	#define	UART_CONTROL_REG			UCSR0B
 	#define	UART_ENABLE_TRANSMITTER		TXEN0
@@ -382,10 +383,14 @@ LICENSE:
 	#define UART_BAUD_SELECT(baudRate,xtalCpu) ((xtalCpu / 4 / baudRate - 1) / 2)
 #elif defined(__AVR_ATmega32__)
 	#define UART_BAUD_SELECT(baudRate,xtalCpu) ((xtalCpu / 8 / baudRate - 1) / 2)
+// #elif defined(__AVR_ATmega2560__) && UART_BAUDRATE_DOUBLE_SPEED
+// 	#define UART_BAUD_SELECT(baudRate,xtalCpu) ((xtalCpu)/(8UL*(baudRate)) - 1)
+// #elif defined(__AVR_ATmega2560__)
+// 	#define UART_BAUD_SELECT(baudRate,xtalCpu) ((xtalCpu)/(16UL*(baudRate)) - 1)
 #elif UART_BAUDRATE_DOUBLE_SPEED
-	#define UART_BAUD_SELECT(baudRate,xtalCpu) (((float)(xtalCpu))/(((float)(baudRate))*8.0)-1.0+0.5)
+	#define UART_BAUD_SELECT(baudRate,xtalCpu) (unsigned long)(((float)(xtalCpu))/(((float)(baudRate))*8.0)-1.0+0.5)
 #else
-	#define UART_BAUD_SELECT(baudRate,xtalCpu) (((float)(xtalCpu))/(((float)(baudRate))*16.0)-1.0+0.5)
+	#define UART_BAUD_SELECT(baudRate,xtalCpu) (unsigned long)(((float)(xtalCpu))/(((float)(baudRate))*16.0)-1.0+0.5)
 #endif
 
 
@@ -616,7 +621,9 @@ int main(void)
 #if UART_BAUDRATE_DOUBLE_SPEED
 	UART_STATUS_REG		|=	(1 <<UART_DOUBLE_SPEED);
 #endif
-	UART_BAUD_RATE_LOW	=	UART_BAUD_SELECT(BAUDRATE,F_CPU);
+	// UART_BAUD_RATE_LOW	=	UART_BAUD_SELECT(BAUDRATE,F_CPU);
+	UART_BAUD_RATE_HIGH = (unsigned char) (UART_BAUD_SELECT(BAUDRATE,F_CPU) >> 8);
+	UART_BAUD_RATE_LOW = (unsigned char) UART_BAUD_SELECT(BAUDRATE,F_CPU);
 	UART_CONTROL_REG	=	(1 << UART_ENABLE_RECEIVER) | (1 << UART_ENABLE_TRANSMITTER);
 
 	asm volatile ("nop");			// wait until port has changed

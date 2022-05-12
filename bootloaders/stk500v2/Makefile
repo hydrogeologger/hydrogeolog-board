@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # Makefile to compile and link stk500boot bootloader
 # Author: Peter Fleury
-# based on WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
+# based on WinAVR Makefile Template written by Eric B. Weddington, Jï¿½rg Wunsch, et al.
 #
 # Adjust F_CPU below to the clock frequency in Mhz of your AVR target
 # Adjust BOOTLOADER_ADDRESS to your AVR target
@@ -300,6 +300,7 @@ MSG_LINKING = Linking:
 MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
+MSG_TIDYING = Tidying project:
 
 
 
@@ -321,6 +322,52 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
+############################################################
+#	Jul 6,	2010	<MLS> Adding 2560 support
+mega2560:	MCU = atmega2560
+mega2560:	F_CPU = 16000000
+mega2560:	BOOTLOADER_ADDRESS = 3E000
+mega2560:	CFLAGS += -D_MEGA_BOARD_
+ifeq ($(shell expr $(baud) \< 115200), 1)
+mega2560:	CFLAGS += -DBAUDRATE=$(baud)
+endif
+# ifeq ($(shell expr $(baud) \<= 115200), 1)
+# mega2560:	CFLAGS += DUART_BAUDRATE_DOUBLE_SPEED=0
+# endif
+mega2560:	begin gccversion sizebefore build sizeafter tidy end 
+ifeq ($(shell expr $(baud) \< 115200), 1)
+	mv $(TARGET).hex stk500boot_v2_mega2560_$(baud)baud.hex
+else
+	mv $(TARGET).hex stk500boot_v2_mega2560.hex
+endif
+
+# mega2560:	MCU = atmega2560
+# mega2560:	F_CPU = 16000000
+# mega2560:	BOOTLOADER_ADDRESS = 3E000
+# mega2560:	CFLAGS += -D_MEGA_BOARD_
+# mega2560:	begin gccversion sizebefore build sizeafter end 
+# 			mv $(TARGET).hex stk500boot_v2_mega2560.hex
+
+
+#	Jul 21,	2021	<MLS> Adding 2560 support, 4800 Baudrate
+mega2560_4800:	MCU = atmega2560
+mega2560_4800:	F_CPU = 16000000
+mega2560_4800:	BOOTLOADER_ADDRESS = 3E000
+mega2560_4800:	CFLAGS += -D_MEGA_BOARD_
+mega2560_4800:	CFLAGS += -DBAUDRATE=4800 -DUART_BAUDRATE_DOUBLE_SPEED=0
+mega2560_4800:	begin gccversion sizebefore build sizeafter tidy end 
+			mv $(TARGET).hex stk500boot_v2_mega2560_4800baud.hex
+
+
+#	Jul 21,	2021	<MLS> Adding 2560 support, 2400 Baudrate
+mega2560_2400:	MCU = atmega2560
+mega2560_2400:	F_CPU = 16000000
+mega2560_2400:	BOOTLOADER_ADDRESS = 3E000
+mega2560_2400:	CFLAGS += -D_MEGA_BOARD_
+mega2560_2400:	CFLAGS += -DBAUDRATE=2400 -DUART_BAUDRATE_DOUBLE_SPEED=0
+mega2560_2400:	begin gccversion sizebefore build sizeafter tidy end 
+			mv $(TARGET).hex stk500boot_v2_mega2560_2400baud.hex
+
 
 ############################################################
 #	May 25,	2010	<MLS> Adding 1280 support
@@ -330,16 +377,6 @@ mega1280: BOOTLOADER_ADDRESS = 1E000
 mega1280: CFLAGS += -D_MEGA_BOARD_
 mega1280: begin gccversion sizebefore build sizeafter end 
 			mv $(TARGET).hex stk500boot_v2_mega1280.hex
-
-
-############################################################
-#	Jul 6,	2010	<MLS> Adding 2560 support
-mega2560:	MCU = atmega2560
-mega2560:	F_CPU = 16000000
-mega2560:	BOOTLOADER_ADDRESS = 3E000
-mega2560:	CFLAGS += -D_MEGA_BOARD_
-mega2560:	begin gccversion sizebefore build sizeafter end 
-			mv $(TARGET).hex stk500boot_v2_mega2560.hex
 
 
 ############################################################
@@ -556,12 +593,12 @@ extcoff: $(TARGET).elf
 
 
 # Target: clean project.
-clean: begin clean_list end
+clean: begin tidy_hex tidy_list end
 
-clean_list :
-	@echo
-	@echo $(MSG_CLEANING)
-	$(REMOVE) *.hex
+# Target: leave only hex file
+tidy: begin tidy_list end
+
+tidy_list:
 	$(REMOVE) *.eep
 	$(REMOVE) *.cof
 	$(REMOVE) *.elf
@@ -572,8 +609,13 @@ clean_list :
 	$(REMOVE) $(LST)
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
-	$(REMOVE) .dep/*
+#	$(REMOVE) .dep/*
+	$(REMOVE) -r .dep
 
+tidy_hex:
+	@echo
+	@echo $(MSG_CLEANING)
+	$(REMOVE) *.hex
 
 
 # Include the dependency files.
@@ -583,5 +625,5 @@ clean_list :
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
-clean clean_list program debug gdb-config
+clean tidy tidy_list tidy_hex program debug gdb-config
 
