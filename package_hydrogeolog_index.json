@@ -1,0 +1,39 @@
+{
+  "packages": 
+  [
+    {
+       "name": "hydrogeolog",
+       "maintainer": "UQ GEC",
+       "help": 
+       {
+         "online": ""
+       },
+       "websiteURL": "https://github.com/hydrogeologger/hydrogeolog-board",      
+       "platforms": 
+       [
+         {
+           "category": "Contributed",
+           "help": 
+           {
+             "online": ""
+           },
+           "url": "https://github.com/hydrogeologger/hydrogeolog-board/archive/1.0.0.zip?raw=true",
+           "checksum": "SHA-256:CFC6A8DEFBE886D814C3D117957B6A5C1D6A3F1A6E782A84673A69C1C23CE302",
+           "archiveFileName": "hydrogeolog-avr-1.0.0.zip",
+           "size": "59052",
+           "name": "Hydrogeolog AVR Boards",
+           "version": "1.0.0",
+           "architecture": "avr",
+           "boards": 
+           [
+             {
+               "name": "Mega 2560 (Hydrogeolog)"
+             }
+           ],
+           "toolsDependencies": []
+         }
+      ],
+      "tools":[]
+    }
+  ]
+}
